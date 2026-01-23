@@ -4,11 +4,11 @@
 #                                     recalc=TRUE)#recalc=FALSE) #
 
 
-lecture_stations <- function(source, destination){
+lecture_stations <- function(origine, destination){
 
     # require('suncalc')    #getSunLightTime()
 
-  stations.init <- read.csv2(source, stringsAsFactors=FALSE, dec='.', na.strings='NA')
+  stations.init <- read.csv2(origine, stringsAsFactors=FALSE, dec='.', na.strings='NA')
   #file.info(source)$mtime; nrow(stations.init)
       if(FALSE){ #a valider plus tard
         ## 3Pn
@@ -112,7 +112,6 @@ lecture_stations <- function(source, destination){
             stations.init$heureDescente, stations.init$minuteDescente, stations.init$fuseauTxt)
   )
   ##
-  ## Conversion selon longueur
   ## Générer le vecteur desc_text selon heure/minute NA ou pas
   desc_text_date <- sprintf("%04d-%02d-%02d",
                             stations.init$annee,
@@ -132,7 +131,11 @@ lecture_stations <- function(source, destination){
   )
   ##
   stations.init$dateDescente <- lubridate::ymd(desc_text_date)
+  #
   stations.init$dateHeureDescente <- lubridate::ymd_hms(desc_text_datetime)
+  stations.init$dateHeureDescente_qc <- stations.init$dateHeureDescente
+  attr(stations.init$dateHeureDescente_qc, "tzone") <- "America/Montreal"
+  stations.init$dateHeureDescente_qctxt <- format(stations.init$dateHeureDescente_qc, "%Y-%m-%d %H:%M:%S")
   ##
   ##
   ## Calculer durée d'immersion
@@ -141,8 +144,10 @@ lecture_stations <- function(source, destination){
     lubridate::dminutes(stations.init$immersionMinute)
   ##
   ## Ajout du dateHeure d'immersion pour dateHeureRemontee
-  stations.init$dateRemontee <- as.Date(stations.init$dateDescente + stations.init$immersion)
   stations.init$dateHeureRemontee <- stations.init$dateHeureDescente + stations.init$immersion
+  stations.init$dateHeureRemontee_qc <- stations.init$dateHeureRemontee
+  attr(stations.init$dateHeureRemontee_qc, "tzone") <- "America/Montreal"
+  stations.init$dateHeureRemontee_qctxt <- format(stations.init$dateHeureRemontee_qc, "%Y-%m-%d %H:%M:%S")
   ##
   ##
   if(FALSE){
@@ -178,8 +183,8 @@ lecture_stations <- function(source, destination){
       ##                                    'appatUnite','flottante_calante','long_avancon','observateur','releve','gardeOuiNon')]
       stations.choix <- stations.init[,c('noStation','cleStation','sZoneOpano','annee','capitaine','association',
                                          'nbHamecon','latDebDD','latFinDD','longDebDD','longFinDD','X','Y','profDeb',
-                                         'profFin','profMoy','dateDescente','dateRemontee',
-                                         'dateHeureDescente','dateHeureRemontee','immersion',
+                                         'profFin','profMoy','dateDescente',
+                                         'dateHeureDescente_qctxt','dateHeureRemontee_qctxt','immersion',
                                          'fuseauHoraire','distance_avancon','appatType','appatQuant',
                                          'appatUnite','flottante_calante','long_avancon','observateur')]
       ## zone opano
@@ -207,7 +212,7 @@ lecture_stations <- function(source, destination){
         ##                          keep=c('nauticalDawn','nauticalDusk'))[c('nauticalDawn','nauticalDusk')]
         ## stations.choix[i,'heureNauticalDawn'] <- as.ITime(temp$nauticalDawn)
         ## stations.choix[i,'heureNauticalDusk'] <- as.ITime(temp$nauticalDusk)
-        temp <- suncalc::getSunlightTimes(date=as.Date(sub(" .*", "", stations.choix[i,'dateHeureDescente'])), lat=stations.choix[i,'Y'], lon=stations.choix[i,'X'],tz="America/New_York",
+        temp <- suncalc::getSunlightTimes(date=as.Date(sub(" .*", "", stations.choix[i,'dateDescente'])), lat=stations.choix[i,'Y'], lon=stations.choix[i,'X'],tz="America/New_York",
                                           keep=c('nauticalDawn','dawn','sunrise','sunset','dusk','nauticalDusk'))
         stations.choix[i,'heureNauticalDawn'] <- data.table::as.ITime(temp$nauticalDawn)
         stations.choix[i,'heureDawn'] <- data.table::as.ITime(temp$dawn)
@@ -218,7 +223,7 @@ lecture_stations <- function(source, destination){
       }
       stations.toutes <- stations.choix
       write.csv2(stations.toutes, file=paste0(destination,'.csv'), row.names=FALSE)
-      save(stations.toutes, file=paste0(fichierVersionTravail,'.RData'))
+      save(stations.toutes, file=paste0(destination,'.RData'))
       return(stations.toutes)
 
 }
