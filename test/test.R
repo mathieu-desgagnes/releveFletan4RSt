@@ -7,3 +7,6 @@ temp <- lecture_stations(origine=file.path('S:','Flétan','Relevé 4RST','BD','d
 
 temp$dateHeureRemontee
 tail(temp,30)
+
+head(temp)
+temp[temp$cleStation=='s1-2017',]
