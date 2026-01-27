@@ -112,6 +112,8 @@ lecture_recaptures <- function(origine, destination){
     tag[which(!is.na(lesquels)),'tEnMer'] <- recap.init[na.omit(lesquels),'tEnMer']
     tag$nbAnEnMer <- tag$anneeRecap-tag$annee
     tag[which(!is.na(lesquels)),'tEnMer.an'] <- recap.init[na.omit(lesquels),'tEnMer.an']
+    ##
+    tag[which(!is.na(lesquels)),'ffaw'] <- recap.init[na.omit(lesquels),'ffaw']
 
     if(FALSE){ #validation visuelle des la séparation des temps en mer en années
       par(mfrow=c(1,2))
@@ -125,7 +127,7 @@ lecture_recaptures <- function(origine, destination){
     }
     ##
     ## ## évaluer les taux de retour
-   ## table(tag$observateur, tag$annee)
+    ## table(tag$observateur, tag$annee)
 
     tagRelPal <- tag[order(tag$date),]
     write.csv2(tagRelPal, paste0(destination,'_bgTag.csv'), row.names=FALSE)
@@ -138,5 +140,5 @@ lecture_recaptures <- function(origine, destination){
     write.csv2(tagF, file=paste0(destination, '_bdTagPourF.csv'), row.names=FALSE)
 
 
-    return(recap.init)
+    return(tag)
 }

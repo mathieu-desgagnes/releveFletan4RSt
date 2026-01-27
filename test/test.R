@@ -10,3 +10,18 @@ tail(temp,30)
 
 head(temp)
 temp[temp$cleStation=='s1-2017',]
+
+###
+
+temp <- lecture_recaptures(origine=file.path('S:','Flétan','Retour de marquage','BD_retourDeTag','retour des tags_ALL'),
+                           destination=file.path('S:','Flétan','Retour de marquage','Analyses','input','recap_vTrav'))
+
+## détermination de la contribution de la FFAW au remboursement des retours d'étiquettes
+test <- temp[which(temp$ffaw),]; nrow(test)
+table(test$anneeRecap)
+sum(table(test$anneeRecap)[as.character(2017:2025)])
+sum(table(test$anneeRecap)[as.character(2018:2025)])
+
+# test <- temp[which(temp$ffaw & temp$pourCalculF),]; nrow(test)
+# table(test$anneeRecap)
+# sum(table(test$anneeRecap)[as.character(2017:2025)])
