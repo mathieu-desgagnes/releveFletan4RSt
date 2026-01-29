@@ -22,6 +22,9 @@ table(test$anneeRecap)
 sum(table(test$anneeRecap)[as.character(2017:2025)])
 sum(table(test$anneeRecap)[as.character(2018:2025)])
 
-# test <- temp[which(temp$ffaw & temp$pourCalculF),]; nrow(test)
-# table(test$anneeRecap)
+sum(table(test$annee)[as.character(2017:2024)])
+
+test <- temp[which(temp$ffaw & temp$pourCalculF),]; nrow(test)
+table(test$anneeRecap)
+table(test$annee)
 # sum(table(test$anneeRecap)[as.character(2017:2025)])
