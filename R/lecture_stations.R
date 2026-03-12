@@ -3,6 +3,16 @@
 #                                     destination=file.path(dir_bd,'versionTravailTemporaire',anneeCourante,'stations_vTrav'),
 #                                     recalc=TRUE)#recalc=FALSE) #
 
+# format stations:
+#
+# cleStation: chr
+# annee: num
+# nbHamecon: num
+# longitude, latitude: num
+# dateHeureDescente: chr
+# dateHeureRemontee: chr
+#
+
 
 lecture_stations <- function(origine, destination){
 
