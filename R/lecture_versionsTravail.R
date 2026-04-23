@@ -6,11 +6,11 @@
 #' @param annee integer de la dernière année a considérer
 #' @param dir_bd position du dossier contenant la base de donnée
 #'
-#' @returns NULL
+#' @returns une liste des stations, longueurs et cph
 #' @export
 #'
 #' @examples
-creation_BD_vTrav <- function(annee, dir_bd = NULL) {
+lecture_versionTravail <- function(annee, dir_bd = NULL) {
   anneeCourante <- annee
   if (is.null(dir_bd)) {
     dir_bd <- file.path('S:', 'Flétan', 'Relevé 4RST', 'BD')
@@ -80,4 +80,11 @@ creation_BD_vTrav <- function(annee, dir_bd = NULL) {
     ),
     recalc = TRUE
   ) #recalc=FALSE) #
+
+  donnee <- list(
+    stations.tt = stations.tt.init,
+    longueurs.tt = longueurs.tt,
+    cph.tt = cph.tt
+  )
+  return(donnee)
 }
