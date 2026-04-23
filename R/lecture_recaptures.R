@@ -9,8 +9,12 @@
 
 lecture_recaptures <- function(origine, destination) {
   #
-  # recap.init.temp <- readxl::read_excel(path=paste0(origine, '.xlsx'), sheet='Feuil1', na='NA', col_types=c('guess','date',rep('guess',23)))
-  recap.init.temp <- read.csv2(file = paste0(origine, '.csv'))
+  recap.init.temp <- readxl::read_excel(
+    path = paste0(origine, '.xlsx'),
+    sheet = 'retour des tags',
+    na = 'NA'
+  )
+  # recap.init.temp <- read.csv2(file = paste0(origine, '.csv'))
   table(recap.init.temp$an_recap, useNA = 'ifany')
   table(recap.init.temp['séries'], useNA = 'ifany')
   recap.init <- as.data.frame(recap.init.temp[
