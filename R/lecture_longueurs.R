@@ -49,7 +49,7 @@ lecture_longueurs <- function(
   table(longueurs.init$espece)
   longueurs.init[
     longueurs.init$espece == 'fletan',
-    'poidsFletan.kg'
+    'poidsEstime.kg'
   ] <- lpFletan_alpha *
     longueurs.init[
       longueurs.init$espece == 'fletan',
@@ -57,7 +57,7 @@ lecture_longueurs <- function(
     ]^lpFletan_beta
   longueurs.init[
     longueurs.init$espece == 'morue',
-    'poidsMorue.kg'
+    'poidsEstime.kg'
   ] <- lpMorue_alpha *
     longueurs.init[
       longueurs.init$espece == 'morue',

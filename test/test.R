@@ -3,67 +3,75 @@
 devtools::load_all()
 anneeCourante <- 2025
 
-stations.temp <- lecture_stations(
-  origine = file.path(
-    'S:',
-    'Flétan',
-    'Relevé 4RST',
-    'BD',
-    'donneesReleveFletan_stations.csv'
-  ),
-  destination = file.path(
-    'S:',
-    'Flétan',
-    'Relevé 4RST',
-    'BD',
-    'versionTravailTemporaire',
-    anneeCourante,
-    'stations_vTrav'
+system.time(
+  stations.init <- lecture_stations(
+    origine = file.path(
+      'S:',
+      'Flétan',
+      'Relevé 4RST',
+      'BD',
+      'donneesReleveFletan_stations.csv'
+    ),
+    destination = file.path(
+      'S:',
+      'Flétan',
+      'Relevé 4RST',
+      'BD',
+      'versionTravailTemporaire',
+      anneeCourante,
+      'stations_vTrav'
+    )
   )
 )
 
-longueurs.temp <- lecture_longueurs(
-  origine = file.path(
-    'S:',
-    'Flétan',
-    'Relevé 4RST',
-    'BD',
-    'donneesReleveFletan_longueur.csv'
-  ),
-  destination = file.path(
-    'S:',
-    'Flétan',
-    'Relevé 4RST',
-    'BD',
-    'versionTravailTemporaire',
-    anneeCourante,
-    'longueurs_vTrav'
+system.time(
+  longueurs.init <- lecture_longueurs(
+    origine = file.path(
+      'S:',
+      'Flétan',
+      'Relevé 4RST',
+      'BD',
+      'donneesReleveFletan_longueur.csv'
+    ),
+    destination = file.path(
+      'S:',
+      'Flétan',
+      'Relevé 4RST',
+      'BD',
+      'versionTravailTemporaire',
+      anneeCourante,
+      'longueurs_vTrav'
+    )
   )
 )
 
-recaptures.temp <- lecture_recaptures(
-  origine = file.path(
-    'S:',
-    'Flétan',
-    'Retour de marquage',
-    'BD_retourDeTag',
-    'retour des tags_ALL'
-  ),
-  destination = file.path(
-    'S:',
-    'Flétan',
-    'Retour de marquage',
-    'Analyses',
-    'input',
-    'recap_vTrav'
-  ),
-  anneeCourante = 2025
+system.time(
+  recaptures.init <- lecture_recaptures(
+    origine = file.path(
+      'S:',
+      'Flétan',
+      'Retour de marquage',
+      'BD_retourDeTag',
+      'retour des tags_ALL'
+    ),
+    destination = file.path(
+      'S:',
+      'Flétan',
+      'Retour de marquage',
+      'Analyses',
+      'input',
+      'recap_vTrav'
+    ),
+    anneeCourante = 2025
+  )
 )
 
 #joindre recapturs et longueurs
+table(longueurs.init$recapture, useNA = 'ifany')
+
 
 #----continuer ici
-longueurs.temp[
+longueurs.init[
   match(recaptures.temp$clePoisson, longueurs.temp$clePoisson),
   'clePoisson'
 ]
