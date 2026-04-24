@@ -15,6 +15,8 @@
 #' @returns `data.frame` de la base de données lue et mise en forme
 #' @export
 #'
+#' @importFrom utils read.csv2 write.csv2
+#'
 #' @examples print('non disponible')
 lecture_longueurs <- function(
   origine,

@@ -7,6 +7,16 @@
 #
 # format de la sortie:
 
+#' Lit la base de données de recaptures
+#'
+#' @param origine chemin d'accès de la base de données
+#' @param destination chemin d'accès où enregistrer la `data.frame` mis en forme
+#' @param anneeCourante derniere année considérée dans la requête
+#'
+#' @returns `data.frame` mis en forme
+#' @export
+#'
+#' @examples print('non disponible')
 lecture_recaptures <- function(origine, destination, anneeCourante) {
   #
   recap.init.temp <- readxl::read_excel(

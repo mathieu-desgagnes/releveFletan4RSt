@@ -9,6 +9,8 @@
 #' @returns une liste des stations, longueurs et cph
 #' @export
 #'
+#' @importFrom utils read.csv2 write.csv2
+#'
 lecture_versionTravail <- function(annee, dir_bd = NULL) {
   anneeCourante <- annee
   if (is.null(dir_bd)) {
