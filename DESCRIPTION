@@ -16,3 +16,4 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/mathieu-desgagnes/releveFletan4RSt
 BugReports: https://github.com/mathieu-desgagnes/releveFletan4RSt/issues
+RoxygenNote: 7.3.3
