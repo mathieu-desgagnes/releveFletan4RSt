@@ -9,8 +9,8 @@ Authors@R: c(
       role = c("aut", "cre")
     )
   )
-Description: Ce package lit la base données, effectue le prétraitement des données et les analyses de base.
-    Continuation lines should be indented.
+Description: Ce package lit la base données, effectue le prétraitement des données et les analyses de base des données
+    issues du relevé à la palangre visant le flétan de l'Atlantique dans les divisions opano 4R, 4S et 4T.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

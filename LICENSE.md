@@ -1,4 +1,4 @@
-# MIT License
+MIT License
 
 Copyright (c) His Majesty the King in right of Canada, as represented by the Minister of Fisheries and Oceans, 2026
 
