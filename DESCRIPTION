@@ -17,3 +17,8 @@ LazyData: true
 URL: https://github.com/mathieu-desgagnes/releveFletan4RSt
 BugReports: https://github.com/mathieu-desgagnes/releveFletan4RSt/issues
 RoxygenNote: 7.3.3
+Imports: 
+    data.table,
+    lubridate,
+    readxl,
+    suncalc
