@@ -7,7 +7,7 @@
 #
 # format de la sortie:
 
-lecture_recaptures <- function(origine, destination) {
+lecture_recaptures <- function(origine, destination, anneeCourante) {
   #
   recap.init.temp <- readxl::read_excel(
     path = paste0(origine, '.xlsx'),
@@ -97,11 +97,14 @@ lecture_recaptures <- function(origine, destination) {
   ## plot(recap$tEnMer.an); hist(recap$tEnMer, breaks=seq(0,3000,by=30)); abline(v=seq(-250,10000,by=365))
   write.csv2(recap.init, file = paste0(destination, '.csv'), row.names = FALSE)
   ##
+  recap.init
+}
 
+if (FALSE) {
   ## ###
   ## Associer le données de marquage, issus de la base de données du relevé à la palangre 4RST
   ## ###
-  anneeCourante <- max(recap.init$an_recap, na.rm = TRUE)
+  # anneeCourante <- max(recap.init$an_recap, na.rm = TRUE)
   load(
     file.path(
       'S:',

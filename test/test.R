@@ -2,19 +2,46 @@
 
 devtools::load_all()
 anneeCourante <- 2025
-# temp <- lecture_stations(origine=file.path('S:','Flétan','Relevé 4RST','BD','donneesReleveFletan_stations.csv'),
-#                          destination=file.path('S:','Flétan','Relevé 4RST','BD','versionTravailTemporaire',anneeCourante,'stations_vTrav'))
-#
-# temp$dateHeureRemontee
-# tail(temp,30)
-#
-# head(temp)
-# temp[temp$cleStation=='s1-2017',]
 
-temp <- lecture_versionTravail(annee = anneeCourante) # assez long...
-###
+stations.temp <- lecture_stations(
+  origine = file.path(
+    'S:',
+    'Flétan',
+    'Relevé 4RST',
+    'BD',
+    'donneesReleveFletan_stations.csv'
+  ),
+  destination = file.path(
+    'S:',
+    'Flétan',
+    'Relevé 4RST',
+    'BD',
+    'versionTravailTemporaire',
+    anneeCourante,
+    'stations_vTrav'
+  )
+)
 
-temp <- lecture_recaptures(
+longueurs.temp <- lecture_longueurs(
+  origine = file.path(
+    'S:',
+    'Flétan',
+    'Relevé 4RST',
+    'BD',
+    'donneesReleveFletan_longueur.csv'
+  ),
+  destination = file.path(
+    'S:',
+    'Flétan',
+    'Relevé 4RST',
+    'BD',
+    'versionTravailTemporaire',
+    anneeCourante,
+    'longueurs_vTrav'
+  )
+)
+
+recaptures.temp <- lecture_recaptures(
   origine = file.path(
     'S:',
     'Flétan',
@@ -29,12 +56,32 @@ temp <- lecture_recaptures(
     'Analyses',
     'input',
     'recap_vTrav'
-  )
+  ),
+  anneeCourante = 2025
 )
 
+#joindre recapturs et longueurs
+
+#----continuer ici
+longueurs.temp[
+  match(recaptures.temp$clePoisson, longueurs.temp$clePoisson),
+  'clePoisson'
+]
+
+
+#
+# temp$dateHeureRemontee
+# tail(temp,30)
+#
+# head(temp)
+# temp[temp$cleStation=='s1-2017',]
+
+temp <- lecture_versionTravail(annee = anneeCourante) # assez long...
+###
+
 # tableau des années de recapture selon année de capture
-x <- table(temp[,c('annee','anneeRecap')])
-dimnames(x)[[2]] <- paste0('retour_',dimnames(x)[[2]])
+x <- table(temp[, c('annee', 'anneeRecap')], useNA = 'ifany')
+dimnames(x)[[2]] <- paste0('retour_', dimnames(x)[[2]])
 table(temp$annee)
 
 
