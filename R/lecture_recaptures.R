@@ -16,6 +16,8 @@
 #' @returns `data.frame` mis en forme
 #' @export
 #'
+#' @importFrom readxl read_excel
+#'
 #' @examples print('non disponible')
 lecture_recaptures <- function(origine, destination, anneeCourante) {
   #
