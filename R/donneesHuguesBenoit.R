@@ -9,7 +9,7 @@
 #' @returns le dataframe enregistré
 #' @export
 #'
-#' @examples
+#' @examples print('Non disponible')
 donneesHuguesBenoit <- function(sourceRecap, destination) {
   # lecture des données de marquage
 

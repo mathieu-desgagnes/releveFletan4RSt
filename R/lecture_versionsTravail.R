@@ -9,7 +9,6 @@
 #' @returns une liste des stations, longueurs et cph
 #' @export
 #'
-#' @examples
 lecture_versionTravail <- function(annee, dir_bd = NULL) {
   anneeCourante <- annee
   if (is.null(dir_bd)) {
