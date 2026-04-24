@@ -11,7 +11,7 @@ Authors@R: c(
   )
 Description: Ce package lit la base données, effectue le prétraitement des données et les analyses de base.
     Continuation lines should be indented.
-License: What license is it under?
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/mathieu-desgagnes/releveFletan4RSt
