@@ -17,3 +17,6 @@ le dataframe enregistré
 \description{
 Produit un fichier données utilisées par Hugues Benoit pour ses travaux sur la mortalité naturelle et survie suite au rejet par la pêche
 }
+\examples{
+print('Non disponible')
+}

@@ -23,6 +23,9 @@ system.time(
     )
   )
 )
+# suite: calculerStrates et definirStrates
+# ajouter des colones pour nombre et poids capturé par stations, par espèces, et si pertinent par classe de taille, depuis les infos de longueur et de cph
+#
 
 system.time(
   longueurs.init <- lecture_longueurs(
@@ -44,6 +47,7 @@ system.time(
     )
   )
 )
+# compléter longueurs.init avec métadata
 
 system.time(
   recaptures.init <- lecture_recaptures(

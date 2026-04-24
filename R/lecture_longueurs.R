@@ -15,7 +15,7 @@
 #' @returns `data.frame` de la base de données lue et mise en forme
 #' @export
 #'
-#' @examples
+#' @examples print('non disponible')
 lecture_longueurs <- function(
   origine,
   lpFletan_alpha = 0.000005262,
