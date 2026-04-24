@@ -1,15 +1,15 @@
 Package: releveFletan4RSt
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Traitement des donées du relevé à la palangre visant le flétan de l'Atlantique 4RST
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Mathieu", "Desgagnés",
+      email = "mathieu.desgagnes@dfo-mpo.gc.ca",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
+Description: Ce package lit la base données, effectue le prétraitement des données et les analyses de base.
     Continuation lines should be indented.
 License: What license is it under?
 Encoding: UTF-8
