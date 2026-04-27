@@ -21,58 +21,60 @@
 #' @examples print('non disponible')
 lecture_recaptures <- function(origine, destination, anneeCourante) {
   #
+  # recap.init.temp <- readxl::read_excel(
+  #   path = paste0(origine, '.xlsx'),
+  #   sheet = 'retour des tags',
+  #   na = 'NA'
+  # )
   recap.init.temp <- readxl::read_excel(
     path = paste0(origine, '.xlsx'),
-    sheet = 'retour des tags',
+    sheet = 'Feuil1',
     na = 'NA'
   )
   # recap.init.temp <- read.csv2(file = paste0(origine, '.csv'))
-  table(recap.init.temp$an_recap, useNA = 'ifany')
-  table(recap.init.temp['séries'], useNA = 'ifany')
+  table(recap.init.temp$anRecap, useNA = 'ifany')
+  table(recap.init.temp['series'], useNA = 'ifany')
   recap.init <- as.data.frame(recap.init.temp[
-    which(recap.init.temp['séries'] == 'HB'),
+    which(recap.init.temp['series'] == 'HB'),
   ])
-  names(recap.init)[which(names(recap.init) == 'séries')] <- 'serie'
-  names(recap.init)[which(names(recap.init) == 'numéro1')] <- 'no1'
-  names(recap.init)[which(names(recap.init) == 'numéro2')] <- 'no2'
   ## names(recap.init)[which(names(recap.init)=='date_recapture')] <- 'dateRecap'
-  names(recap.init)[which(names(recap.init) == 'temps.en.mer')] <- 'tEnMer'
+  names(recap.init)[which(names(recap.init) == 'temps en mer')] <- 'tEnMer'
   ## table(recap.init$serie, useNA='ifany')
-  ## table(recap.init$no1, useNA='ifany')
-  recap.init$no1 <- as.numeric(recap.init$no1)
-  ## table(recap.init$no2, useNA='ifany')
-  recap.init$no2 <- as.numeric(recap.init$no2)
-  recap.init$nbTagRecap <- as.numeric(!is.na(recap.init$no1)) +
-    as.numeric(!is.na(recap.init$no2))
+  ## table(recap.init$tag1, useNA='ifany')
+  recap.init$tag1 <- as.numeric(recap.init$tag1)
+  ## table(recap.init$tag2, useNA='ifany')
+  recap.init$tag2 <- as.numeric(recap.init$tag2)
+  recap.init$nbTagRecap <- as.numeric(!is.na(recap.init$tag1)) +
+    as.numeric(!is.na(recap.init$tag2))
   ##
   recap.init$dateRecap <- as.Date(
     paste(
-      recap.init$an_recap,
-      recap.init$mois_recap,
-      recap.init$jour_recap,
+      recap.init$anRecap,
+      recap.init$moisRecap,
+      recap.init$jourRecap,
       sep = '-'
     ),
     format = '%Y-%m-%j'
   )
-  recap.init$dateMarq <- as.Date(recap.init$date_marq, format = '%Y-%m-%j')
+  recap.init$dateMarq <- as.Date(recap.init$dateMarq, format = '%Y-%m-%j')
   recap.init$anMarq <- lubridate::year(recap.init$dateMarq)
   ## recap.init$clePoisson
   ##
   ## par(mfrow=c(1,2))
-  ## hist(recap.init$tEnMer, breaks=seq(0,3000,by=365.25/12)); abline(v=365*1:6, col=2)
+  ## hist(recap.init$tEnMer, breaks=seq(0,5000,by=365.25/12)); abline(v=365*1:6, col=2)
   recap.init$tEnMer <- as.numeric(recap.init$dateRecap - recap.init$dateMarq)
   recap.init[is.na(recap.init$tEnMer), 'tEnMer'] <- as.numeric(
     as.Date(
-      paste(recap.init$an_recap, recap.init$moisRecap, 15, sep = '-'),
+      paste(recap.init$anRecap, recap.init$moisRecap, 15, sep = '-'),
       format = '%Y-%m-%j'
     ) -
       recap.init$dateMarq
   )[is.na(recap.init$tEnMer)]
   recap.init[is.na(recap.init$tEnMer), 'tEnMer'] <- as.numeric(
-    as.Date(paste(recap.init$an_recap, 1, 1, sep = '-'), format = '%Y-%m-%j') -
+    as.Date(paste(recap.init$anRecap, 1, 1, sep = '-'), format = '%Y-%m-%j') -
       recap.init$dateMarq +
       mean(lubridate::yday(recap.init$dateRecap), na.rm = TRUE)
-  )[is.na(recap.init$tEnMer)]
+  )[which(is.na(recap.init$tEnMer))]
   ##
   recap.init$tEnMerCut <- cut(
     recap.init$tEnMer,
@@ -97,14 +99,14 @@ lecture_recaptures <- function(origine, destination, anneeCourante) {
   ] *
     2.54
   ##
-  recap.init$ffaw <- FALSE
-  recap.init[which(recap.init['prénom'] == 'FFAW'), 'ffaw'] <- TRUE
-  ##
-  if (FALSE) {
-    table(recap.init['prénom'])
-    test <- recap.init[recap.init['prénom'] == 'FFAW', ]
-    table(test$an_recap)
-  }
+  # recap.init$ffaw <- FALSE
+  # recap.init[which(recap.init['prenom'] == 'FFAW'), 'ffaw'] <- TRUE
+  # ##
+  # if (FALSE) {
+  #   table(recap.init['prénom'])
+  #   test <- recap.init[recap.init['prénom'] == 'FFAW', ]
+  #   table(test$an_recap)
+  # }
   ## recap <- subset(recap.init, substr(recap.init$clePoisson,1,1)%in%c('s','d'))
   ## plot(recap$tEnMer.an); hist(recap$tEnMer, breaks=seq(0,3000,by=30)); abline(v=seq(-250,10000,by=365))
   write.csv2(recap.init, file = paste0(destination, '.csv'), row.names = FALSE)
