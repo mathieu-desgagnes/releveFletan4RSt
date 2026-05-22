@@ -4,11 +4,14 @@
 #' @param dir_releve chemin du répertoire où les stations tirées seront enregistrées
 #' @param dir_shapefile chemin du répertoire où lire les shapefiles de la zone d'étude
 #' @param fichier_nb_stations chemin du fichier .csv contenant le nombre de stations allouées à chaque strate
+#' @param fichier_raster chemin du fichier contenant les informations de profondeur
 #' @param seed valeur utilisée pour initialiser le tirage aléatoire des stations. Si NULL, le paramètre `annee` est utilisé.#'
 #'
 #' @returns un data.frame des stations tirées
 #'
 #' @import sf
+#' @import terra
+#' @importFrom units set_units
 #'
 #' @export
 #'
@@ -18,6 +21,7 @@ tirage_stations <- function(
   dir_releve,
   dir_shapefile,
   fichier_nb_stations,
+  fichier_raster,
   seed = NULL
 ) {
   ## 0) où enregistrer les stations
@@ -229,28 +233,20 @@ tirage_stations <- function(
     }
   }
 
-  ##########
-  ##
-  ## continuer ici
-  ##
-  ##########
-
   ## 4) Réordonner aléatoirement les statins et valider les profondeurs et distances entre stations
   ##
-  diff.dist_min <- set_units(5, nautical_mile)
+  diff.dist_min <- units::set_units(5, nautical_mile)
   diff.prof_min <- 100
   ## ATTENTION!!! valider la bathymetrie utilisée
   ##
-  rast20 <- terra::rast(file.path(
-    'S:',
-    'Flétan',
-    'bathy_DAISS',
-    'gulf20m_2020May26_ascii',
-    'gulf20m_mathieuDesgagnes.grd'
-  ))
-  stations_choisies$profondeur <- -extract(
+  if (file.exists(fichier_raster)) {
+    rast20 <- terra::rast(fichier_raster)
+  } else {
+    stop("Il n'y a pas de fichier de bathymétrie à l'emplacement fournis.")
+  }
+  stations_choisies$profondeur <- -terra::extract(
     x = rast20,
-    st_coordinates(stations_choisies)
+    sf::st_coordinates(stations_choisies)
   )$gulf20m_2020may26
   ##
   ## réordonner aléatoirement les stations
@@ -285,12 +281,15 @@ tirage_stations <- function(
   }
   temp <- cbind(
     as.data.frame(stations_choisies),
-    st_coordinates(st_transform(stations_choisies, crs("epsg:4326"))),
+    sf::st_coordinates(sf::st_transform(
+      stations_choisies,
+      sf::st_crs("epsg:4326")
+    )),
     dist.temp.qcl
   )
   write.csv2(
     temp,
-    file = file.path(dir.choix_station, 'distanceStationsProposees.csv')
+    file = file.path(dir_station, 'distanceStationsProposees.csv')
   )
   ##
   ## ordonner les stations et traduire en wgs84
@@ -329,7 +328,7 @@ tirage_stations <- function(
   ##
   ##
   ## transformer en WGS84
-  stations <- st_transform(stations_choisies, crs("epsg:4326")) #donc stations_choisies en qcl et stations en wgs84
+  stations <- sf::st_transform(stations_choisies, sf::st_crs("epsg:4326")) #donc stations_choisies en qcl et stations en wgs84
   coord.temp <- cbind(
     as.data.frame(stations)[, c(
       'idGlobal',
@@ -338,11 +337,11 @@ tirage_stations <- function(
       'profondeur',
       'priorite'
     )],
-    st_coordinates(stations)
+    sf::st_coordinates(stations)
   )
   write.csv2(
     coord.temp,
-    file = file.path(dir.choix_station, 'stationsProposees.csv'),
+    file = file.path(dir_station, 'stationsProposees.csv'),
     row.names = FALSE
   )
 
@@ -408,15 +407,326 @@ tirage_stations <- function(
   ##
   write.csv2(
     temp,
-    file = file.path(dir.choix_station, 'stationsProposees_DMS.csv'),
+    file = file.path(dir_station, 'stationsProposees_DMS.csv'),
     row.names = FALSE,
     fileEncoding = 'UTF-8',
     quote = FALSE
   )
 
-  ########
+  #####
   ##
-  ## suite à la ligne 478 du fichier tirageAleatoireDeCoordonnees.r
+  ## A partir d'ici, une inspection visuelle des stations proposées est nécessaire, pour ensuite suggérer l'utilisation de stations alternatives
   ##
-  ########
+  #####
+
+  stations <- read.csv2(
+    file = file.path(dir_station, 'stationsProposees.csv'),
+    stringsAsFactors = FALSE
+  )
+  table(stations$priorite)
+  switch(
+    as.character(annee),
+    '2024' = {
+      stationsProb <- c('54')
+      stationsRemplacement <- c('201')
+    },
+    '2023' = {
+      stationsProb <- c('5', '73', '119', '236')
+      stationsRemplacement <- c('159', '134', '293', '239')
+    },
+    '2022' = {
+      stations[
+        which(stations$idGlobal %in% c('87', '231', '36', '148')),
+        'priorite'
+      ] <- 'mauvaiseProf'
+      stations[
+        which(stations$idGlobal %in% c('271', '45', '208')),
+        'priorite'
+      ] <- 'base'
+    },
+    {
+      stationsProb <- NA
+      stationsRemplacement <- NA
+    }
+  )
+  ##
+  if (!is.na(stationsProb)) {
+    stations[which(stations$idGlobal %in% stationsProb), ]
+    stations[
+      which(
+        stations$strateOpano ==
+          stations[which(stations$idGlobal %in% stationsProb), 'strateOpano'] &
+          stations$strateProf ==
+            stations[which(stations$idGlobal %in% stationsProb), 'strateProf'] &
+          stations$priorite == 'alternative'
+      ),
+    ]
+    stations[
+      which(stations$idGlobal %in% stationsProb),
+      'priorite'
+    ] <- 'mauvaiseProf'
+    stations[
+      which(stations$idGlobal %in% stationsRemplacement),
+      'priorite'
+    ] <- 'base'
+    table(stations$priorite)
+  }
+  write.csv2(
+    stations,
+    file = file.path(dir_station, 'stationsProposees_mod.csv'),
+    row.names = FALSE
+  )
+
+  if (TRUE) {
+    # option4 ajouter 3 stations en 'cote' et 3 stations en 'prof' (préférée en 2025)
+    stA <- stations[
+      which(
+        stations$priorite %in%
+          c('alternative', 'autre') &
+          stations$strateOpano == '4RA_' &
+          stations$strateProf == 'cote'
+      ),
+    ]
+    stB <- stations[
+      which(
+        stations$priorite %in%
+          c('alternative', 'autre') &
+          stations$strateOpano == '4RB_' &
+          stations$strateProf == 'prof'
+      ),
+    ]
+    ## polygon.temp <- st_transform(subset(prof.qcl, UnitArea%in%c('4RA','4RB')), crs=crs("epsg:4326"))
+    ## plot(polygon.temp[,c('geometry','UnitArea')], col=2, axes=TRUE)
+    ## plot(st_as_sf(stA[,c('X','Y','idGlobal')], coords=c('X','Y'), crs=crs("epsg:4326")), col=1, axes=TRUE, pch=16)
+    stations[
+      which(stations$idGlobal %in% stA$idGlobal[1:3]),
+      'priorite'
+    ] <- 'supplementaire4Ra' #cote
+    stations[
+      which(stations$idGlobal %in% stB$idGlobal[1:3]),
+      'priorite'
+    ] <- 'supplementaire4Ra' #prof
+  }
+
+  switch(
+    as.character(annee),
+    '2025' = {
+      # ajouter 2 stations "exploratoire" fixées par GNSFPB et 3 stations "exploratoires" fixées par PEIFA
+      stations[nrow(stations) + 1, ] <- list(
+        idGlobal = NA,
+        strateOpano = '4TL',
+        strateProf = 'cote',
+        profondeur = NA,
+        priorite = 'exploratoireSud',
+        X = -64 - 30.74 / 60,
+        Y = 46 + 44.04 / 60
+      )
+      stations[
+        head(
+          which(
+            stations$priorite %in%
+              c('alternative') &
+              stations$strateOpano == '4TG_' &
+              stations$strateProf == 'cote'
+          ),
+          4
+        ),
+        'priorite'
+      ] <- 'exploratoireSud'
+    },
+    '2024' = {
+      # ajouter 2 stations "exploratoire" fixées par GNSFPB et 3 stations "exploratoires" fixées par PEIFA
+      stations[nrow(stations) + 1:5, ] <- list(
+        idGlobal = rep(NA, 5),
+        strateOpano = c(rep('4TG', 2), '4TL', rep('4TG', 2)),
+        strateProf = rep('cote', 5),
+        profondeur = rep(NA, 5),
+        priorite = rep('exploratoireSud', 5),
+        X = c(
+          -60 - 35.38 / 60, #121
+          -61 - 14.78 / 60, #122
+          -64 - 30.74 / 60, #123
+          -63 - 24.80 / 60, #124
+          -62 - 38.25 / 60
+        ), #125
+        Y = c(
+          47 + 06.77 / 60, #121
+          46 + 41.25 / 60, #122
+          46 + 44.04 / 60, #123
+          46 + 38.73 / 60, #124
+          46 + 37.71 / 60
+        ) #125
+      )
+    },
+    '2023' = {
+      # ajouter 3 stations "exploratoire" fixées par GNSFPB et 2 stations "exploratoires" fixées par PEIFA
+      stations[nrow(stations) + 1:5, ] <- list(
+        idGlobal = rep(NA, 5),
+        X = c(
+          -61 - 03.369 / 60, #121
+          -61 - 12.674 / 60, #122
+          -64 - 20 / 60 - 48.48 / 3600, #123
+          -61 - 42.432 / 60, #124
+          -62 - 55 / 60 - 50.82 / 3600
+        ), #125
+        Y = c(
+          46 + 46.519 / 60, #121
+          46 + 40.659 / 60, #122
+          46 + 57 / 60 + .30 / 3600, #123
+          46 + 57.579 / 60, #124
+          45 + 51 / 60 + 6.84 / 3600
+        ), #125
+        strateProf = rep('cote', 5),
+        strateOpano = c(rep('4TG', 2), '4TL', rep('4TG', 2)),
+        profondeur = rep(NA, 5),
+        priorite = rep('exploratoireSud', 5)
+      )
+    },
+    '2022' = {
+      # ajouter une station "exploratoire" PEIFA fixée et 4 aléatoires
+      stations[nrow(stations) + 1, ] <- list(
+        idGlobal = NA,
+        X = -64.349033,
+        Y = 46.866167,
+        strateProf = 'cote',
+        strateOpano = '4TL',
+        profondeur = NA,
+        priorite = 'exploratoireSud'
+      )
+      stations[
+        head(
+          which(
+            stations$priorite %in%
+              c('alternative') &
+              stations$strateOpano == '4TG' &
+              stations$strateProf == 'cote'
+          ),
+          4
+        ),
+        'priorite'
+      ] <- 'exploratoireSud'
+    },
+    '2021' = {
+      ## ajouter des stations "exploratoire" PEIFA
+      tail(stations)
+      stations[nrow(stations) + 1, ] <- list(
+        Field1 = (max(stations$Field1) + 1),
+        X = -63 - 55.37 / 60,
+        Y = 47 + 11.01 / 60,
+        strateProf = 'cote',
+        UnitArea = '4Tl'
+      )
+      stations[nrow(stations) + 1, ] <- list(
+        Field1 = (max(stations$Field1) + 1),
+        X = -62 - 42.81 / 60,
+        Y = 46 + 29.38 / 60,
+        strateProf = 'cote',
+        UnitArea = '4Tl'
+      )
+      ## ajouter station "exploratoire" GNSFPB
+      tail(stations)
+    }
+  )
+
+  ## mettre des id similaires aux précédentes années
+  ## incluant 121à125 pour supplémentaires du sgsl, 126à131 pour 4Ra ffaw, 200:206 pour 3Pn ffaw)
+  stations$id <- NA
+  stations[stations$priorite == 'base', 'id'] <- 1:sum(
+    stations$priorite == 'base'
+  )
+  stations[stations$priorite == 'exploratoireSud', 'id'] <- c(
+    121,
+    122,
+    124,
+    123,
+    125
+  ) #2023
+  ## stations[stations$priorite=='exploratoireSud','id'] <- 121:125 #2022 et avant
+  stations[stations$priorite == 'supplementaire4Ra', 'id'] <- 126 +
+    1:sum(stations$priorite == 'supplementaire4Ra') -
+    1
+  ## enregistrer les stations finales
+  write.csv2(
+    stations,
+    file = file.path(dir_station, 'stationsProposeesAvecID.csv'),
+    row.names = FALSE
+  )
+
+  ## ajouter différents format de coordonnées
+  stations.temp <- transcrireFormat(coord = stations)
+  ##
+  write.csv2(
+    stations,
+    file = file.path(dir_station, 'stationsProposeesAvecID_DMS.csv'),
+    row.names = FALSE,
+    fileEncoding = 'utf-8',
+    quote = FALSE
+  )
+
+  stations.fin <- subset(
+    stations,
+    !is.na(id),
+    select = c(
+      'id',
+      'idGlobal',
+      'X',
+      'Y',
+      'strateOpano',
+      'strateProf',
+      'profondeur',
+      'priorite'
+    )
+  )
+  names(stations.fin) <- c(
+    'id',
+    'idGlobal',
+    'X',
+    'Y',
+    'ssZoneOpano',
+    'strateProfondeur',
+    'profondeur',
+    'choix'
+  )
+  write.csv2(
+    stations.fin,
+    file = file.path(dir_station, 'stationsFinales.csv'),
+    row.names = FALSE
+  )
+  stations.fin.dms <- subset(
+    stations.temp,
+    !is.na(id),
+    select = c(
+      'id',
+      'idGlobal',
+      'strateOpano',
+      'strateProf',
+      'profondeur',
+      'priorite',
+      'Latitude DMM',
+      'Longitude DMM',
+      'Latitude DMS',
+      'Longitude DMS',
+      'Latitude DD',
+      'Longitude DD'
+    )
+  )
+  names(stations.fin.dms) <- c(
+    'id',
+    'idGlobal',
+    'ssZoneOpano',
+    'strateProfondeur',
+    'profondeur',
+    'choix',
+    'Latitude DMM',
+    'Longitude DMM',
+    'Latitude DMS',
+    'Longitude DMS',
+    'Latitude DD',
+    'Longitude DD'
+  )
+  write.csv2(
+    stations.fin.dms,
+    file = file.path(dir_station, 'stationsFinales_DMS.csv'),
+    row.names = FALSE
+  )
 }
