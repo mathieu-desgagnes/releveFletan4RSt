@@ -9,7 +9,12 @@
 #' @export
 #'
 #' @examples
-produire_carte_protocole <- function(annee, dir_releve, dir_pbs) {
+produire_carte_protocole <- function(
+  annee,
+  dir_releve,
+  dir_pbs,
+  dir_shapefile
+) {
   library(PBSmapping)
 
   ## 1) lire les données
@@ -28,16 +33,30 @@ produire_carte_protocole <- function(annee, dir_releve, dir_pbs) {
     file = file.path(dir_pbs, 'output', 'vieux stock', 'fondBleu.RData'),
     verbose = 1
   ) #fonction pour ajouter un dégradé en bleu suivant la profondeur
-  load(
-    file = file.path(dir_pbs, 'output', 'vieux stock', 'ssZone_fletan.RData'),
-    verbose = 1
-  )
-  file.info(file.path(
-    dir_pbs,
-    'output',
-    'vieux stock',
-    'ssZone_fletan.RData'
-  ))$mtime #ssZone
+  # load(
+  #   file = file.path(dir_pbs, 'output', 'vieux stock', 'ssZone_fletan.RData'),
+  #   verbose = 1
+  # )
+  # file.info(file.path(
+  #   dir_pbs,
+  #   'output',
+  #   'vieux stock',
+  #   'ssZone_fletan.RData'
+  # ))$mtime #ssZone
+
+  ## 1a) lire les shapefiles de la zone d'étude
+  cote.qcl <- sf::st_read(file.path(
+    dir_shapefile,
+    '20_50m',
+    'habitat_20_50m_nettoye.shp'
+  ))
+  cote <- sf::st_transform(cote.qcl, sf::st_crs("epsg:4326")) #wgs84
+  prof.qcl <- sf::st_read(file.path(
+    dir_shapefile,
+    '100_300m',
+    'habitat_100_300m_nettoye.shp'
+  ))
+  prof <- sf::st_transform(prof.qcl, sf::st_crs("epsg:4326")) #wgs84
 
   ## 2) lire les stations
   stationsTt <- read.csv2(
@@ -234,14 +253,14 @@ produire_carte_protocole <- function(annee, dir_releve, dir_pbs) {
   }
 
   carteProtocole(
-    tabPos = stationsFinales,
+    tabPos = subset(stationsFinales, id <= 125),
     anneeCourante = annee,
     couleur = 'white',
     inclureAireEtude = FALSE,
     dirOutput = dir_stations
   )
   carteProtocole(
-    tabPos = stationsFinales,
+    tabPos = subset(stationsFinales, id <= 125),
     anneeCourante = annee,
     couleur = 'white',
     inclureAireEtude = FALSE,
