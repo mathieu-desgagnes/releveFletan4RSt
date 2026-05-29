@@ -420,7 +420,7 @@ tirage_stations <- function(
   #####
 
   stations <- read.csv2(
-    file = file.path(dir_station, 'stationsProposees.csv'),
+    file = file.path(dir_station, 'stationsProposees_DMS.csv'),
     stringsAsFactors = FALSE
   )
   table(stations$priorite)
@@ -729,4 +729,5 @@ tirage_stations <- function(
     file = file.path(dir_station, 'stationsFinales_DMS.csv'),
     row.names = FALSE
   )
+  stations
 }
