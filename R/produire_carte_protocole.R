@@ -184,7 +184,6 @@ produire_carte_protocole <- function(
   )
   openxlsx::write.xlsx(temp, file.path(dir_stations, 'coordStation.xlsx'))
   ##
-  ## ensuite éditer le fichier à la main
 
   ## 4) carte pour protocole
   carteProtocole <- function(
