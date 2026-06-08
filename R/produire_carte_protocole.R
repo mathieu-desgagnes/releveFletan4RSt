@@ -1,7 +1,11 @@
 #' Production de la carte à joindre au protocole du relevé à la palangre
 #'
+#' La fonction lit les données de cartographie, les stations.
+#' La fonction enregistre un tableau des stations pour inclure dans le protocole.
+#' La fonction enregistre des cartes pour inclure dans le protocole, soit une générale et plusieurs aggrandissements.
+#'
 #' @param annee anne pour laquelle la carte est calculée
-#' @param dir_releve chemin pour le dossier ou se trouve les protocoles
+#' @param dir_releve chemin pour le dossier ou se trouve les protocoles, pour lire et écrire
 #' @param dir_pbs chemin pour le dossier ou se trouve les outils pré-formatés en format PBSmapping
 #'
 #' @import PBSmapping
@@ -15,8 +19,6 @@ produire_carte_protocole <- function(
   dir_pbs,
   dir_shapefile
 ) {
-  library(PBSmapping)
-
   ## 1) lire les données
   dir_stations <- file.path(dir_releve, annee, 'coordonnees')
   load(
@@ -63,7 +65,10 @@ produire_carte_protocole <- function(
     file.path(dir_stations, 'stationsProposees.csv'),
     stringsAsFactors = FALSE
   )
-  ## stationsFinales <- read.csv2(file.path(dir.stations, 'stationsFinales_DMS.csv'), stringsAsFactors=FALSE)
+  stationsFinales <- read.csv2(
+    file.path(dir_stations, 'stationsFinales_DMS.csv'),
+    stringsAsFactors = FALSE
+  )
   stationsFinales <- read.csv2(
     file.path(dir_stations, 'stationsFinales.csv'),
     stringsAsFactors = FALSE
@@ -74,6 +79,102 @@ produire_carte_protocole <- function(
   stations4Rab <- subset(stationsFinales, choix %in% c('supplementaire4Ra'))
 
   ## 3) écrire les stations sous forme de tableau pour protocole
+  ## le format est de 42 lignes, avec 3x 3 colonnes ('id','latitude','longitude')
+  temp <- array(
+    dim = c(42, 9),
+    dimnames = list(NULL, rep(c('id', 'Latitude DD', 'Longitude DD'), 3))
+  )
+  temp[1:42, 1:3] <- as.matrix(stations[
+    match(1:42, stations$id),
+    c('id', 'Latitude.DD', 'Longitude.DD')
+  ])
+  temp[1:42, 4:6] <- as.matrix(stations[
+    match(43:84, stations$id),
+    c('id', 'Latitude.DD', 'Longitude.DD')
+  ])
+  temp[1:41, 7:9] <- as.matrix(stations[
+    match(85:125, stations$id),
+    c('id', 'Latitude.DD', 'Longitude.DD')
+  ])
+  write.csv2(
+    temp,
+    file = file.path(dir_stations, 'posStation_protocole_DD.csv'),
+    row.names = FALSE,
+    fileEncoding = 'latin1'
+  )
+  write.xlsx(temp, file.path(dir_stations, 'posStation_protocole_DD.xlsx'))
+  #
+  temp <- array(
+    dim = c(42, 9),
+    dimnames = list(NULL, rep(c('id', 'Latitude DMM', 'Longitude DMM'), 3))
+  )
+  temp[1:42, 1:3] <- as.matrix(stations[
+    match(1:42, stations$id),
+    c('id', 'Latitude.DMM', 'Longitude.DMM')
+  ])
+  temp[1:42, 4:6] <- as.matrix(stations[
+    match(43:84, stations$id),
+    c('id', 'Latitude.DMM', 'Longitude.DMM')
+  ])
+  temp[1:41, 7:9] <- as.matrix(stations[
+    match(85:125, stations$id),
+    c('id', 'Latitude.DMM', 'Longitude.DMM')
+  ])
+  write.csv2(
+    temp,
+    file = file.path(dir_stations, 'posStation_protocole_DMM.csv'),
+    row.names = FALSE,
+    fileEncoding = 'latin1'
+  )
+  write.xlsx(temp, file.path(dir_stations, 'posStation_protocole_DMM.xlsx'))
+  ##
+  temp <- array(
+    dim = c(42, 9),
+    dimnames = list(NULL, rep(c('id', 'Latitude DMS', 'Longitude DMS'), 3))
+  )
+  temp[1:42, 1:3] <- as.matrix(stations[
+    match(1:42, stations$id),
+    c('id', 'Latitude.DMS', 'Longitude.DMS')
+  ])
+  temp[1:42, 4:6] <- as.matrix(stations[
+    match(43:84, stations$id),
+    c('id', 'Latitude.DMS', 'Longitude.DMS')
+  ])
+  temp[1:41, 7:9] <- as.matrix(stations[
+    match(85:125, stations$id),
+    c('id', 'Latitude.DMS', 'Longitude.DMS')
+  ])
+  write.csv2(
+    temp,
+    file = file.path(dir_stations, 'posStation_protocole_DMS.csv'),
+    row.names = FALSE,
+    fileEncoding = 'latin1'
+  )
+  write.xlsx(temp, file.path(dir_stations, 'posStation_protocole_DMS.xlsx'))
+  ##
+  ##
+  ## 3a) écrire toutes les stations dans un .csv avec les différents formats
+  temp <- stations[, c(
+    'id',
+    'ssZoneOpano',
+    'strateProfondeur',
+    'Latitude.DMS',
+    'Longitude.DMS',
+    'Latitude.DMM',
+    'Longitude.DMM',
+    'Latitude.DD',
+    'Longitude.DD'
+  )]
+  write.csv2(
+    temp,
+    file = file.path(dir_stations, paste0('coordStation.csv')),
+    row.names = FALSE,
+    fileEncoding = 'latin1',
+    quote = FALSE
+  )
+  write.xlsx(temp, file.path(dir_stations, 'coordStation.xlsx'))
+  ##
+  ## ensuite éditer le fichier à la main
 
   ## 4) carte pour protocole
   carteProtocole <- function(

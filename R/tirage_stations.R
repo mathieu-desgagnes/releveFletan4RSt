@@ -365,23 +365,23 @@ tirage_stations <- function(
     ## coord['Latitude DD'] <- sprintf("%.5f\u00B0", coord[,'Y'])
     ## coord['Longitude DD'] <- sprintf("-%.5f\u00B0", -coord[,'X'])
     coord['Latitude DMM'] <- sprintf(
-      "%ddeg%06.3f'",
+      "%d°%06.3f'",
       floor(coord[, 'Y']),
       coord[, 'Y'] %% 1 * 60
     )
     coord['Longitude DMM'] <- sprintf(
-      "-%ddeg%06.3f'",
+      "-%d°%06.3f'",
       floor(-coord[, 'X']),
       -coord[, 'X'] %% 1 * 60
     )
     coord['Latitude DMS'] <- sprintf(
-      "%ddeg%02d'%02d\"",
+      "%d°%02d'%02d\"",
       floor(coord[, 'Y']),
       floor(coord[, 'Y'] %% 1 * 60),
       floor((coord[, 'Y'] %% 1 * 60) %% 1 * 60)
     )
     coord['Longitude DMS'] <- sprintf(
-      "-%ddeg%02d'%02d\"",
+      "-%d°%02d'%02d\"",
       floor(-coord[, 'X']),
       floor(-coord[, 'X'] %% 1 * 60),
       floor((-coord[, 'X'] %% 1 * 60) %% 1 * 60)
