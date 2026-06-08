@@ -386,8 +386,8 @@ tirage_stations <- function(
       floor(-coord[, 'X'] %% 1 * 60),
       floor((-coord[, 'X'] %% 1 * 60) %% 1 * 60)
     )
-    coord['Latitude DD'] <- sprintf("%.5fdeg", coord[, 'Y'])
-    coord['Longitude DD'] <- sprintf("-%.5fdeg", -coord[, 'X'])
+    coord['Latitude DD'] <- sprintf("%.5f°", coord[, 'Y'])
+    coord['Longitude DD'] <- sprintf("-%.5f°", -coord[, 'X'])
     coord
     ## temp['Latitude DMM'] <- paste0(floor(coord[,'Y']), '\u00B0',
     ##                                formatC(coord[,'Y']%%1*60, digits=3, width=6, flag='0', format='f'), '\u2032')

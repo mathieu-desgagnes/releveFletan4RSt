@@ -9,6 +9,7 @@
 #' @param dir_pbs chemin pour le dossier ou se trouve les outils pré-formatés en format PBSmapping
 #'
 #' @import PBSmapping
+#' @importFrom openxlsx write.xlsx
 #' @returns
 #' @export
 #'
@@ -69,10 +70,10 @@ produire_carte_protocole <- function(
     file.path(dir_stations, 'stationsFinales_DMS.csv'),
     stringsAsFactors = FALSE
   )
-  stationsFinales <- read.csv2(
-    file.path(dir_stations, 'stationsFinales.csv'),
-    stringsAsFactors = FALSE
-  )
+  # stationsFinales <- read.csv2(
+  #   file.path(dir_stations, 'stationsFinales.csv'),
+  #   stringsAsFactors = FALSE
+  # )
   ## table(stationsTt$priorite); table(stationsTt$strateOpano)
   ## stations4RST <- subset(stationsTt, strateOpano!='3PN')
   stations <- subset(stationsFinales, choix %in% c('base', 'exploratoireSud'))
@@ -102,7 +103,10 @@ produire_carte_protocole <- function(
     row.names = FALSE,
     fileEncoding = 'latin1'
   )
-  write.xlsx(temp, file.path(dir_stations, 'posStation_protocole_DD.xlsx'))
+  openxlsx::write.xlsx(
+    temp,
+    file.path(dir_stations, 'posStation_protocole_DD.xlsx')
+  )
   #
   temp <- array(
     dim = c(42, 9),
@@ -126,7 +130,10 @@ produire_carte_protocole <- function(
     row.names = FALSE,
     fileEncoding = 'latin1'
   )
-  write.xlsx(temp, file.path(dir_stations, 'posStation_protocole_DMM.xlsx'))
+  openxlsx::write.xlsx(
+    temp,
+    file.path(dir_stations, 'posStation_protocole_DMM.xlsx')
+  )
   ##
   temp <- array(
     dim = c(42, 9),
@@ -150,7 +157,10 @@ produire_carte_protocole <- function(
     row.names = FALSE,
     fileEncoding = 'latin1'
   )
-  write.xlsx(temp, file.path(dir_stations, 'posStation_protocole_DMS.xlsx'))
+  openxlsx::write.xlsx(
+    temp,
+    file.path(dir_stations, 'posStation_protocole_DMS.xlsx')
+  )
   ##
   ##
   ## 3a) écrire toutes les stations dans un .csv avec les différents formats
@@ -172,7 +182,7 @@ produire_carte_protocole <- function(
     fileEncoding = 'latin1',
     quote = FALSE
   )
-  write.xlsx(temp, file.path(dir_stations, 'coordStation.xlsx'))
+  openxlsx::write.xlsx(temp, file.path(dir_stations, 'coordStation.xlsx'))
   ##
   ## ensuite éditer le fichier à la main
 
