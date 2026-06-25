@@ -20,10 +20,12 @@
 tirage_stations <- function(
   annee,
   dir_releve,
-  dir_shapefile,
+  fichier_shapefile_cote,
+  fichier_shapefile_prof,
   fichier_nb_stations,
   fichier_raster,
-  seed = NULL
+  seed = NULL,
+  opano_3Pn = FALSE
 ) {
   ## 0) où enregistrer les stations
   dir_station <- file.path(dir_releve, as.character(annee), 'coordonnees')
@@ -34,17 +36,9 @@ tirage_stations <- function(
 
   ##
   ## 1) lire les shapefiles de la zone d'étude
-  cote.qcl <- sf::st_read(file.path(
-    dir_shapefile,
-    '20_50m',
-    'habitat_20_50m_nettoye.shp'
-  ))
+  cote.qcl <- sf::st_read(fichier_shapefile_cote)
   cote <- sf::st_transform(cote.qcl, sf::st_crs("epsg:4326")) #wgs84
-  prof.qcl <- sf::st_read(file.path(
-    dir_shapefile,
-    '100_300m',
-    'habitat_100_300m_nettoye.shp'
-  ))
+  prof.qcl <- sf::st_read(fichier_shapefile_prof)
   prof <- sf::st_transform(prof.qcl, sf::st_crs("epsg:4326")) #wgs84
 
   ##
@@ -293,7 +287,11 @@ tirage_stations <- function(
   )
   write.csv2(
     temp,
-    file = file.path(dir_station, 'distanceStationsProposees.csv'),
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'distanceStationsProposees_3pn.csv'),
+      file.path(dir_station, 'distanceStationsProposees.csv')
+    ),
     row.names = FALSE
   )
   # openxlsx::write.xlsx(
@@ -365,12 +363,20 @@ tirage_stations <- function(
   }
   write.csv2(
     coord.temp,
-    file = file.path(dir_station, 'stationsProposees.csv'),
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsProposees_3pn.csv'),
+      file.path(dir_station, 'stationsProposees.csv')
+    ),
     row.names = FALSE
   )
   openxlsx::write.xlsx(
     coord.temp,
-    file.path(dir_station, 'stations_proposees.xlsx')
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stations_proposees_3pn.xlsx'),
+      file.path(dir_station, 'stations_proposees.xlsx')
+    )
   )
 
   ##
@@ -435,14 +441,22 @@ tirage_stations <- function(
   ##
   write.csv2(
     temp,
-    file = file.path(dir_station, 'stationsProposees_DMS.csv'),
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsProposees_DMS_3pn.csv'),
+      file.path(dir_station, 'stationsProposees_DMS.csv')
+    ),
     row.names = FALSE,
     fileEncoding = 'UTF-8',
     quote = FALSE
   )
   openxlsx::write.xlsx(
     temp,
-    file.path(dir_station, 'stations_proposees_DMS.xlsx')
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsProposees_DMS_3pn.xlsx'),
+      file.path(dir_station, 'stationsProposees_DMS.xlsx')
+    )
   )
 
   #####
@@ -452,68 +466,88 @@ tirage_stations <- function(
   #####
 
   stations <- read.csv2(
-    file = file.path(dir_station, 'stationsProposees_DMS.csv'),
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsProposees_DMS_3pn.csv'),
+      file.path(dir_station, 'stationsProposees_DMS.csv')
+    ),
     stringsAsFactors = FALSE
   )
   table(stations$priorite)
-  switch(
-    as.character(annee),
-    '2024' = {
-      stationsProb <- c('54')
-      stationsRemplacement <- c('201')
-    },
-    '2023' = {
-      stationsProb <- c('5', '73', '119', '236')
-      stationsRemplacement <- c('159', '134', '293', '239')
-    },
-    '2022' = {
+  if (!opano_3Pn) {
+    switch(
+      as.character(annee),
+      '2024' = {
+        stationsProb <- c('54')
+        stationsRemplacement <- c('201')
+      },
+      '2023' = {
+        stationsProb <- c('5', '73', '119', '236')
+        stationsRemplacement <- c('159', '134', '293', '239')
+      },
+      '2022' = {
+        stations[
+          which(stations$idGlobal %in% c('87', '231', '36', '148')),
+          'priorite'
+        ] <- 'mauvaiseProf'
+        stations[
+          which(stations$idGlobal %in% c('271', '45', '208')),
+          'priorite'
+        ] <- 'base'
+      },
+      {
+        stationsProb <- NA
+        stationsRemplacement <- NA
+      }
+    )
+    ##
+    if (!is.na(stationsProb)) {
+      stations[which(stations$idGlobal %in% stationsProb), ]
       stations[
-        which(stations$idGlobal %in% c('87', '231', '36', '148')),
+        which(
+          stations$strateOpano ==
+            stations[
+              which(stations$idGlobal %in% stationsProb),
+              'strateOpano'
+            ] &
+            stations$strateProf ==
+              stations[
+                which(stations$idGlobal %in% stationsProb),
+                'strateProf'
+              ] &
+            stations$priorite == 'alternative'
+        ),
+      ]
+      stations[
+        which(stations$idGlobal %in% stationsProb),
         'priorite'
       ] <- 'mauvaiseProf'
       stations[
-        which(stations$idGlobal %in% c('271', '45', '208')),
+        which(stations$idGlobal %in% stationsRemplacement),
         'priorite'
       ] <- 'base'
-    },
-    {
-      stationsProb <- NA
-      stationsRemplacement <- NA
+      table(stations$priorite)
     }
-  )
-  ##
-  if (!is.na(stationsProb)) {
-    stations[which(stations$idGlobal %in% stationsProb), ]
-    stations[
-      which(
-        stations$strateOpano ==
-          stations[which(stations$idGlobal %in% stationsProb), 'strateOpano'] &
-          stations$strateProf ==
-            stations[which(stations$idGlobal %in% stationsProb), 'strateProf'] &
-          stations$priorite == 'alternative'
-      ),
-    ]
-    stations[
-      which(stations$idGlobal %in% stationsProb),
-      'priorite'
-    ] <- 'mauvaiseProf'
-    stations[
-      which(stations$idGlobal %in% stationsRemplacement),
-      'priorite'
-    ] <- 'base'
-    table(stations$priorite)
   }
   write.csv2(
     stations,
-    file = file.path(dir_station, 'stationsProposees_mod.csv'),
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsProposees_mod_3pn.csv'),
+      file.path(dir_station, 'stationsProposees_mod.csv')
+    ),
     row.names = FALSE
   )
   openxlsx::write.xlsx(
     stations,
-    file.path(dir_station, 'stations_proposees_mod.xlsx')
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsProposees_DMS_3pn.xlsx'),
+      file.path(dir_station, 'stationsProposees_DMS.xlsx')
+    )
   )
 
-  if (TRUE) {
+  if (opano_3Pn) {
     # option4 ajouter 3 stations en 'cote' et 3 stations en 'prof' (préférée en 2025)
     stA <- stations[
       which(
@@ -542,154 +576,167 @@ tirage_stations <- function(
       which(stations$idGlobal %in% stB$idGlobal[1:3]),
       'priorite'
     ] <- 'supplementaire4Ra' #prof
+
+    switch(
+      as.character(annee),
+      '2025' = {
+        # ajouter 2 stations "exploratoire" fixées par GNSFPB et 3 stations "exploratoires" fixées par PEIFA
+        stations[nrow(stations) + 1, ] <- list(
+          idGlobal = NA,
+          strateOpano = '4TL',
+          strateProf = 'cote',
+          profondeur = NA,
+          priorite = 'exploratoireSud',
+          X = -64 - 30.74 / 60,
+          Y = 46 + 44.04 / 60
+        )
+        stations[
+          head(
+            which(
+              stations$priorite %in%
+                c('alternative') &
+                stations$strateOpano == '4TG_' &
+                stations$strateProf == 'cote'
+            ),
+            4
+          ),
+          'priorite'
+        ] <- 'exploratoireSud'
+      },
+      '2024' = {
+        # ajouter 2 stations "exploratoire" fixées par GNSFPB et 3 stations "exploratoires" fixées par PEIFA
+        stations[nrow(stations) + 1:5, ] <- list(
+          idGlobal = rep(NA, 5),
+          strateOpano = c(rep('4TG', 2), '4TL', rep('4TG', 2)),
+          strateProf = rep('cote', 5),
+          profondeur = rep(NA, 5),
+          priorite = rep('exploratoireSud', 5),
+          X = c(
+            -60 - 35.38 / 60, #121
+            -61 - 14.78 / 60, #122
+            -64 - 30.74 / 60, #123
+            -63 - 24.80 / 60, #124
+            -62 - 38.25 / 60
+          ), #125
+          Y = c(
+            47 + 06.77 / 60, #121
+            46 + 41.25 / 60, #122
+            46 + 44.04 / 60, #123
+            46 + 38.73 / 60, #124
+            46 + 37.71 / 60
+          ) #125
+        )
+      },
+      '2023' = {
+        # ajouter 3 stations "exploratoire" fixées par GNSFPB et 2 stations "exploratoires" fixées par PEIFA
+        stations[nrow(stations) + 1:5, ] <- list(
+          idGlobal = rep(NA, 5),
+          X = c(
+            -61 - 03.369 / 60, #121
+            -61 - 12.674 / 60, #122
+            -64 - 20 / 60 - 48.48 / 3600, #123
+            -61 - 42.432 / 60, #124
+            -62 - 55 / 60 - 50.82 / 3600
+          ), #125
+          Y = c(
+            46 + 46.519 / 60, #121
+            46 + 40.659 / 60, #122
+            46 + 57 / 60 + .30 / 3600, #123
+            46 + 57.579 / 60, #124
+            45 + 51 / 60 + 6.84 / 3600
+          ), #125
+          strateProf = rep('cote', 5),
+          strateOpano = c(rep('4TG', 2), '4TL', rep('4TG', 2)),
+          profondeur = rep(NA, 5),
+          priorite = rep('exploratoireSud', 5)
+        )
+      },
+      '2022' = {
+        # ajouter une station "exploratoire" PEIFA fixée et 4 aléatoires
+        stations[nrow(stations) + 1, ] <- list(
+          idGlobal = NA,
+          X = -64.349033,
+          Y = 46.866167,
+          strateProf = 'cote',
+          strateOpano = '4TL',
+          profondeur = NA,
+          priorite = 'exploratoireSud'
+        )
+        stations[
+          head(
+            which(
+              stations$priorite %in%
+                c('alternative') &
+                stations$strateOpano == '4TG' &
+                stations$strateProf == 'cote'
+            ),
+            4
+          ),
+          'priorite'
+        ] <- 'exploratoireSud'
+      },
+      '2021' = {
+        ## ajouter des stations "exploratoire" PEIFA
+        tail(stations)
+        stations[nrow(stations) + 1, ] <- list(
+          Field1 = (max(stations$Field1) + 1),
+          X = -63 - 55.37 / 60,
+          Y = 47 + 11.01 / 60,
+          strateProf = 'cote',
+          UnitArea = '4Tl'
+        )
+        stations[nrow(stations) + 1, ] <- list(
+          Field1 = (max(stations$Field1) + 1),
+          X = -62 - 42.81 / 60,
+          Y = 46 + 29.38 / 60,
+          strateProf = 'cote',
+          UnitArea = '4Tl'
+        )
+        ## ajouter station "exploratoire" GNSFPB
+        tail(stations)
+      }
+    )
+
+    ## mettre des id similaires aux précédentes années
+    ## incluant 121à125 pour supplémentaires du sgsl, 126à131 pour 4Ra ffaw, 200:206 pour 3Pn ffaw)
+    stations$id <- NA
+    stations[stations$priorite == 'base', 'id'] <- 1:sum(
+      stations$priorite == 'base'
+    )
+    stations[stations$priorite == 'exploratoireSud', 'id'] <- c(
+      121,
+      122,
+      124,
+      123,
+      125
+    ) #2023
+    ## stations[stations$priorite=='exploratoireSud','id'] <- 121:125 #2022 et avant
+    stations[stations$priorite == 'supplementaire4Ra', 'id'] <- 126 +
+      1:sum(stations$priorite == 'supplementaire4Ra') -
+      1
+  } else {
+    stations$id <- NA
+    stations[stations$priorite == 'base', 'id'] <- 1:sum(
+      stations$priorite == 'base'
+    )
   }
-
-  switch(
-    as.character(annee),
-    '2025' = {
-      # ajouter 2 stations "exploratoire" fixées par GNSFPB et 3 stations "exploratoires" fixées par PEIFA
-      stations[nrow(stations) + 1, ] <- list(
-        idGlobal = NA,
-        strateOpano = '4TL',
-        strateProf = 'cote',
-        profondeur = NA,
-        priorite = 'exploratoireSud',
-        X = -64 - 30.74 / 60,
-        Y = 46 + 44.04 / 60
-      )
-      stations[
-        head(
-          which(
-            stations$priorite %in%
-              c('alternative') &
-              stations$strateOpano == '4TG_' &
-              stations$strateProf == 'cote'
-          ),
-          4
-        ),
-        'priorite'
-      ] <- 'exploratoireSud'
-    },
-    '2024' = {
-      # ajouter 2 stations "exploratoire" fixées par GNSFPB et 3 stations "exploratoires" fixées par PEIFA
-      stations[nrow(stations) + 1:5, ] <- list(
-        idGlobal = rep(NA, 5),
-        strateOpano = c(rep('4TG', 2), '4TL', rep('4TG', 2)),
-        strateProf = rep('cote', 5),
-        profondeur = rep(NA, 5),
-        priorite = rep('exploratoireSud', 5),
-        X = c(
-          -60 - 35.38 / 60, #121
-          -61 - 14.78 / 60, #122
-          -64 - 30.74 / 60, #123
-          -63 - 24.80 / 60, #124
-          -62 - 38.25 / 60
-        ), #125
-        Y = c(
-          47 + 06.77 / 60, #121
-          46 + 41.25 / 60, #122
-          46 + 44.04 / 60, #123
-          46 + 38.73 / 60, #124
-          46 + 37.71 / 60
-        ) #125
-      )
-    },
-    '2023' = {
-      # ajouter 3 stations "exploratoire" fixées par GNSFPB et 2 stations "exploratoires" fixées par PEIFA
-      stations[nrow(stations) + 1:5, ] <- list(
-        idGlobal = rep(NA, 5),
-        X = c(
-          -61 - 03.369 / 60, #121
-          -61 - 12.674 / 60, #122
-          -64 - 20 / 60 - 48.48 / 3600, #123
-          -61 - 42.432 / 60, #124
-          -62 - 55 / 60 - 50.82 / 3600
-        ), #125
-        Y = c(
-          46 + 46.519 / 60, #121
-          46 + 40.659 / 60, #122
-          46 + 57 / 60 + .30 / 3600, #123
-          46 + 57.579 / 60, #124
-          45 + 51 / 60 + 6.84 / 3600
-        ), #125
-        strateProf = rep('cote', 5),
-        strateOpano = c(rep('4TG', 2), '4TL', rep('4TG', 2)),
-        profondeur = rep(NA, 5),
-        priorite = rep('exploratoireSud', 5)
-      )
-    },
-    '2022' = {
-      # ajouter une station "exploratoire" PEIFA fixée et 4 aléatoires
-      stations[nrow(stations) + 1, ] <- list(
-        idGlobal = NA,
-        X = -64.349033,
-        Y = 46.866167,
-        strateProf = 'cote',
-        strateOpano = '4TL',
-        profondeur = NA,
-        priorite = 'exploratoireSud'
-      )
-      stations[
-        head(
-          which(
-            stations$priorite %in%
-              c('alternative') &
-              stations$strateOpano == '4TG' &
-              stations$strateProf == 'cote'
-          ),
-          4
-        ),
-        'priorite'
-      ] <- 'exploratoireSud'
-    },
-    '2021' = {
-      ## ajouter des stations "exploratoire" PEIFA
-      tail(stations)
-      stations[nrow(stations) + 1, ] <- list(
-        Field1 = (max(stations$Field1) + 1),
-        X = -63 - 55.37 / 60,
-        Y = 47 + 11.01 / 60,
-        strateProf = 'cote',
-        UnitArea = '4Tl'
-      )
-      stations[nrow(stations) + 1, ] <- list(
-        Field1 = (max(stations$Field1) + 1),
-        X = -62 - 42.81 / 60,
-        Y = 46 + 29.38 / 60,
-        strateProf = 'cote',
-        UnitArea = '4Tl'
-      )
-      ## ajouter station "exploratoire" GNSFPB
-      tail(stations)
-    }
-  )
-
-  ## mettre des id similaires aux précédentes années
-  ## incluant 121à125 pour supplémentaires du sgsl, 126à131 pour 4Ra ffaw, 200:206 pour 3Pn ffaw)
-  stations$id <- NA
-  stations[stations$priorite == 'base', 'id'] <- 1:sum(
-    stations$priorite == 'base'
-  )
-  stations[stations$priorite == 'exploratoireSud', 'id'] <- c(
-    121,
-    122,
-    124,
-    123,
-    125
-  ) #2023
-  ## stations[stations$priorite=='exploratoireSud','id'] <- 121:125 #2022 et avant
-  stations[stations$priorite == 'supplementaire4Ra', 'id'] <- 126 +
-    1:sum(stations$priorite == 'supplementaire4Ra') -
-    1
   ## enregistrer les stations finales
   write.csv2(
     stations,
-    file = file.path(dir_station, 'stationsProposeesAvecID.csv'),
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsProposeesAvecID_3pn.csv'),
+      file.path(dir_station, 'stationsProposeesAvecID.csv')
+    ),
     row.names = FALSE
   )
   openxlsx::write.xlsx(
     stations,
-    file.path(dir_station, 'stations_proposees_avecID.xlsx')
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsProposeesAvecID_3pn.xlsx'),
+      file.path(dir_station, 'stationsProposeesAvecID.xlsx')
+    )
   )
 
   ## ajouter différents format de coordonnées
@@ -697,14 +744,22 @@ tirage_stations <- function(
   ##
   write.csv2(
     stations,
-    file = file.path(dir_station, 'stationsProposeesAvecID_DMS.csv'),
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsProposeesAvecID_DMS_3pn.csv'),
+      file.path(dir_station, 'stationsProposeesAvecID_DMS.csv')
+    ),
     row.names = FALSE,
     fileEncoding = 'utf-8',
     quote = FALSE
   )
   openxlsx::write.xlsx(
     stations,
-    file.path(dir_station, 'stations_proposees_avecID_DMS.xlsx')
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stations_proposees_avecID_DMS_3pn.xlsx'),
+      file.path(dir_station, 'stations_proposees_avecID_DMS.xlsx')
+    )
   )
 
   stations.fin <- subset(
@@ -733,12 +788,20 @@ tirage_stations <- function(
   )
   write.csv2(
     stations.fin,
-    file = file.path(dir_station, 'stationsFinales.csv'),
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsFinales_3pn.csv'),
+      file.path(dir_station, 'stationsFinales.csv')
+    ),
     row.names = FALSE
   )
   openxlsx::write.xlsx(
     stations.fin,
-    file.path(dir_station, 'stations_finales.xlsx')
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stations_finales_3pn.xlsx'),
+      file.path(dir_station, 'stations_finales.xlsx')
+    )
   )
   stations.fin.dms <- subset(
     stations.temp,
@@ -774,16 +837,28 @@ tirage_stations <- function(
   )
   write.csv2(
     stations.fin.dms,
-    file = file.path(dir_station, 'stationsFinales_DMS.csv'),
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stationsFinales_DMS_3pn.csv'),
+      file.path(dir_station, 'stationsFinales_DMS.csv')
+    ),
     row.names = FALSE
   )
   openxlsx::write.xlsx(
     stations.fin.dms,
-    file.path(dir_station, 'stations_finales_DMS.xlsx')
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stations_finales_DMS_3pn.xlsx'),
+      file.path(dir_station, 'stations_finales_DMS.xlsx')
+    )
   )
   openxlsx::write.xlsx(
     subset(stations.fin.dms, id %in% 126:131),
-    file.path(dir_station, 'stations_supplementaires_FFAW_DMS.xlsx')
+    file = ifelse(
+      opano_3Pn,
+      file.path(dir_station, 'stations_supplementaires_FFAW_DMS_3pn.xlsx'),
+      file.path(dir_station, 'stations_supplementaires_FFAW_DMS.xlsx')
+    )
   )
 
   stations
