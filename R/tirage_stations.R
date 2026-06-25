@@ -12,6 +12,7 @@
 #' @import sf
 #' @import terra
 #' @importFrom units set_units
+#' @importFrom openxlsx write.xlsx
 #'
 #' @export
 #'
@@ -68,16 +69,16 @@ tirage_stations <- function(
         paste('4SZ', '4TO', '4TP', '4TQ', sep = '-')
       ),
       aire = c(
-        2194.51,
-        2407.29,
-        1481.54,
-        2860.1,
-        7040.23,
-        6646.9,
-        2406.23,
-        3621.88,
-        3441.71,
-        1630.8
+        2058.29,
+        2012.07,
+        1516.02,
+        3084.98,
+        7169.01,
+        6888.15,
+        2651.90,
+        3573.89,
+        3463.71,
+        1971.18
       ),
       ## nb_stationsOri=list(2,3,2,3,7,7,3,4,4,2),
       nb_stations = c(2, 2, 2, 3, 8, 7, 3, 4, 4, 2),
@@ -118,24 +119,24 @@ tirage_stations <- function(
         paste('4TK', '4TN', sep = '-')
       ),
       aire = c(
-        8419.32,
-        9125.51,
-        2399.83,
-        3738.69,
-        6575.7,
-        9529.31,
-        3038.29,
-        10863.27,
-        4642.11,
-        4463.2,
-        2735.33,
-        4028.7,
-        3326.94,
+        8377.67,
+        8980.42,
+        2554.41,
+        3751.63,
+        6588.86,
+        9546.02,
+        3019.60,
+        10855.62,
+        4670.22,
+        4503.74,
+        3421.11,
+        4684.85,
+        2786.87,
         0,
         0,
         0,
         0,
-        4359.11
+        4071.60
       ),
       nb_stations = c(9, 10, 3, 4, 7, 10, 3, 11, 5, 5, 3, 4, 4, 0, 0, 0, 0, 5),
       nb_stations125 = c(
@@ -181,6 +182,8 @@ tirage_stations <- function(
       profondeur = 'prof'
     ))
     nb_stations <- rbind(nb_stations1, nb_stations2)
+    nb_stations$nb_stations <- as.numeric(nb_stations$nb_stations)
+    nb_stations$nb_stations125 <- as.numeric(nb_stations$nb_stations125)
     write.csv2(nb_stations, file = fichier_nb_stations, row.names = FALSE)
   }
 
@@ -221,6 +224,7 @@ tirage_stations <- function(
         cbind(
           temp,
           data.frame(
+            nomOpano = rep(nb_stations[i.poly, 'opano'], length(temp)),
             strateOpano = rep(nb_stations[i.poly, 'nomOpano'], length(temp)),
             strateProf = nb_stations[i.poly, 'profondeur'],
             priorite = 'autre',
@@ -287,25 +291,15 @@ tirage_stations <- function(
     )),
     dist.temp.qcl
   )
-  if (FALSE) {
-    temp_init <- read.csv2(
-      file = file.path(dir_station, 'distanceStationsProposees.csv')
-    )
-    write.csv2(
-      temp,
-      file = file.path(dir_station, 'distanceStationsProposees_test.csv')
-    )
-    temp <- read.csv2(
-      file = file.path(dir_station, 'distanceStationsProposees_test.csv')
-    )
-    identical(temp_init, temp)
-    all.equal(temp_init, temp)
-  }
   write.csv2(
     temp,
     file = file.path(dir_station, 'distanceStationsProposees.csv'),
     row.names = FALSE
   )
+  # openxlsx::write.xlsx(
+  #   temp,
+  #   file.path(dir_station, 'distance_stations_proposees.xlsx')
+  # )
   ##
   ## ordonner les stations et traduire en wgs84
   stations_choisies <- stations_choisies[
@@ -373,6 +367,10 @@ tirage_stations <- function(
     coord.temp,
     file = file.path(dir_station, 'stationsProposees.csv'),
     row.names = FALSE
+  )
+  openxlsx::write.xlsx(
+    coord.temp,
+    file.path(dir_station, 'stations_proposees.xlsx')
   )
 
   ##
@@ -442,6 +440,10 @@ tirage_stations <- function(
     fileEncoding = 'UTF-8',
     quote = FALSE
   )
+  openxlsx::write.xlsx(
+    temp,
+    file.path(dir_station, 'stations_proposees_DMS.xlsx')
+  )
 
   #####
   ##
@@ -505,6 +507,10 @@ tirage_stations <- function(
     stations,
     file = file.path(dir_station, 'stationsProposees_mod.csv'),
     row.names = FALSE
+  )
+  openxlsx::write.xlsx(
+    stations,
+    file.path(dir_station, 'stations_proposees_mod.xlsx')
   )
 
   if (TRUE) {
@@ -681,6 +687,10 @@ tirage_stations <- function(
     file = file.path(dir_station, 'stationsProposeesAvecID.csv'),
     row.names = FALSE
   )
+  openxlsx::write.xlsx(
+    stations,
+    file.path(dir_station, 'stations_proposees_avecID.xlsx')
+  )
 
   ## ajouter différents format de coordonnées
   stations.temp <- transcrireFormat(coord = stations)
@@ -691,6 +701,10 @@ tirage_stations <- function(
     row.names = FALSE,
     fileEncoding = 'utf-8',
     quote = FALSE
+  )
+  openxlsx::write.xlsx(
+    stations,
+    file.path(dir_station, 'stations_proposees_avecID_DMS.xlsx')
   )
 
   stations.fin <- subset(
@@ -721,6 +735,10 @@ tirage_stations <- function(
     stations.fin,
     file = file.path(dir_station, 'stationsFinales.csv'),
     row.names = FALSE
+  )
+  openxlsx::write.xlsx(
+    stations.fin,
+    file.path(dir_station, 'stations_finales.xlsx')
   )
   stations.fin.dms <- subset(
     stations.temp,
@@ -759,5 +777,14 @@ tirage_stations <- function(
     file = file.path(dir_station, 'stationsFinales_DMS.csv'),
     row.names = FALSE
   )
+  openxlsx::write.xlsx(
+    stations.fin.dms,
+    file.path(dir_station, 'stations_finales_DMS.xlsx')
+  )
+  openxlsx::write.xlsx(
+    subset(stations.fin.dms, id %in% 126:131),
+    file.path(dir_station, 'stations_supplementaires_FFAW_DMS.xlsx')
+  )
+
   stations
 }
