@@ -8,9 +8,15 @@
 <!-- badges: end -->
 
 Ce package rempli deux fonctions, soit effectuer le tirage aléatoire des
-stations pour la rédation du protocole d’échantillonnage, ainsi que lire
-la base de données, formater et faire les analyses initiales du relevé à
-la palangre visant le flétan de l’Atlantique des zones opano 4RST.
+stations pour la rédaction du protocole d’échantillonnage, ainsi que
+lire la base de données, formater et faire les analyses initiales du
+relevé à la palangre visant le flétan de l’Atlantique des zones opano
+4RST.
+
+### Tirage aléatoire
+
+Dans sa version actuelle, le tirage aléatoire des stations se fait en
+validant ligne par ligne la fonction `tirage_sations()`.
 
 ## Installation
 
@@ -28,6 +34,16 @@ This is a basic example which shows you how to solve a common problem:
 
 ``` r
 library(releveFletan4RSt)
+#> Warning: replacing previous import 'lubridate::intersect' by 'terra::intersect'
+#> when loading 'releveFletan4RSt'
+#> Warning: replacing previous import 'lubridate::origin' by 'terra::origin' when
+#> loading 'releveFletan4RSt'
+#> Warning: replacing previous import 'lubridate::union' by 'terra::union' when
+#> loading 'releveFletan4RSt'
+#> Warning: replacing previous import 'terra::head' by 'utils::head' when loading
+#> 'releveFletan4RSt'
+#> Warning: replacing previous import 'terra::tail' by 'utils::tail' when loading
+#> 'releveFletan4RSt'
 ## basic example code
 ```
 

@@ -287,9 +287,24 @@ tirage_stations <- function(
     )),
     dist.temp.qcl
   )
+  if (FALSE) {
+    temp_init <- read.csv2(
+      file = file.path(dir_station, 'distanceStationsProposees.csv')
+    )
+    write.csv2(
+      temp,
+      file = file.path(dir_station, 'distanceStationsProposees_test.csv')
+    )
+    temp <- read.csv2(
+      file = file.path(dir_station, 'distanceStationsProposees_test.csv')
+    )
+    identical(temp_init, temp)
+    all.equal(temp_init, temp)
+  }
   write.csv2(
     temp,
-    file = file.path(dir_station, 'distanceStationsProposees.csv')
+    file = file.path(dir_station, 'distanceStationsProposees.csv'),
+    row.names = FALSE
   )
   ##
   ## ordonner les stations et traduire en wgs84
@@ -339,6 +354,21 @@ tirage_stations <- function(
     )],
     sf::st_coordinates(stations)
   )
+  if (FALSE) {
+    temp_init <- read.csv2(
+      file = file.path(dir_station, 'stationsProposees.csv')
+    )
+    write.csv2(
+      coord.temp,
+      file = file.path(dir_station, 'stationsProposees_test.csv'),
+      row.names = FALSE
+    )
+    coord.temp <- read.csv2(
+      file = file.path(dir_station, 'stationsProposees_test.csv')
+    )
+    identical(temp_init, coord.temp)
+    all.equal(temp_init, coord.temp)
+  }
   write.csv2(
     coord.temp,
     file = file.path(dir_station, 'stationsProposees.csv'),
