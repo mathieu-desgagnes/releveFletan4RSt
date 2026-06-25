@@ -10,10 +10,10 @@
 #'
 #' @import PBSmapping
 #' @importFrom openxlsx write.xlsx
-#' @returns
+#' @returns NULL
 #' @export
 #'
-#' @examples
+#' @examples ## à venir
 produire_carte_protocole <- function(
   annee,
   dir_releve,

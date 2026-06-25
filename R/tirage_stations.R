@@ -15,7 +15,7 @@
 #'
 #' @export
 #'
-#' @examples
+#' @examples #à venir
 tirage_stations <- function(
   annee,
   dir_releve,

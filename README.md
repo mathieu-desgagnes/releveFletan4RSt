@@ -7,9 +7,10 @@
 
 <!-- badges: end -->
 
-Le but du package est de lire la base de données, formater et faire les
-analyses initiales du relevé à la palangre visant le flétan de
-l’Atlantique des zones opano 4RST
+Ce package rempli deux fonctions, soit effectuer le tirage aléatoire des
+stations pour la rédation du protocole d’échantillonnage, ainsi que lire
+la base de données, formater et faire les analyses initiales du relevé à
+la palangre visant le flétan de l’Atlantique des zones opano 4RST.
 
 ## Installation
 

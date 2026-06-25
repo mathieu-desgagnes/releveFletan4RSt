@@ -16,9 +16,14 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/mathieu-desgagnes/releveFletan4RSt
 BugReports: https://github.com/mathieu-desgagnes/releveFletan4RSt/issues
-RoxygenNote: 7.3.3
 Imports: 
     data.table,
     lubridate,
+    openxlsx,
+    PBSmapping,
     readxl,
-    suncalc
+    sf,
+    suncalc,
+    terra,
+    units
+Config/roxygen2/version: 8.0.0
